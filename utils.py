@@ -31,7 +31,7 @@ def jsonize(data):
     return json.dumps(data, sort_keys=False, indent=4)
 
 def store_sample(data):
-    md5 = File(file_data=data).get_sha256()
+    sha256 = File(file_data=data).get_sha256()
     
     folder = os.path.join(Config().api.repository, sha256[0], sha256[1], sha256[2], sha256[3])
     if not os.path.exists(folder):
