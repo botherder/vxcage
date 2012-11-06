@@ -37,7 +37,7 @@ def store_sample(data):
     if not os.path.exists(folder):
         os.makedirs(folder, 0750)
 
-    file_path = os.path.join(folder, md5)
+    file_path = os.path.join(folder, sha256)
 
     if not os.path.exists(file_path):
         sample = open(file_path, "wb")
