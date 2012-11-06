@@ -35,7 +35,7 @@ PostgreSQL:
 
     postgresql://user:pass@host/database
 
-Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/rel_0_7/core/engines.html)'s documentation for additional details.
+Refer to [SQLAlchemy](http://docs.sqlalchemy.org/en/latest/core/engines.html)'s documentation for additional details.
 
 Now proceeds installing Apache and required modes:
 
