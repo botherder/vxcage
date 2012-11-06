@@ -26,6 +26,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy.pool import NullPool
 
 from objects import File, Config
 
