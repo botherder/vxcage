@@ -31,9 +31,9 @@ def jsonize(data):
     return json.dumps(data, sort_keys=False, indent=4)
 
 def store_sample(data):
-    md5 = File(file_data=data).get_md5()
+    md5 = File(file_data=data).get_sha256()
     
-    folder = os.path.join(Config().api.repository, md5[0], md5[1], md5[2], md5[3])
+    folder = os.path.join(Config().api.repository, sha256[0:3])
     if not os.path.exists(folder):
         os.makedirs(folder, 0750)
 
@@ -46,8 +46,8 @@ def store_sample(data):
     
     return file_path
 
-def get_sample_path(md5):
-    path = os.path.join(Config().api.repository, md5[0], md5[1], md5[2], md5[3], md5)
+def get_sample_path(sha256):
+    path = os.path.join(Config().api.repository, sha256[0:3], sha256)
     if not os.path.exists(path):
         return None
     return path

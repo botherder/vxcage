@@ -42,9 +42,9 @@ def add_malware():
 
     return jsonize({"message" : "added"})
 
-@route("/malware/get/<md5>", method="GET")
-def get_malware(md5):
-    path = get_sample_path(md5)
+@route("/malware/get/<sha256>", method="GET")
+def get_malware(sha256):
+    path = get_sample_path(sha256)
     if not path:
         return jsonize({"error" : "file_not_found"})
 
