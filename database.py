@@ -22,7 +22,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, ForeignKey, Table
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, ForeignKey, Table, Index
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -43,15 +43,22 @@ class Malware(Base):
     file_name = Column(String(255), nullable=True)
     file_size = Column(Integer(), nullable=False)
     file_type = Column(String(255), nullable=False)
-    md5 = Column(String(32), unique=True, nullable=False, index=True)
-    crc32 = Column(String(8), unique=True, nullable=False)
-    sha1 = Column(String(40), unique=True, nullable=False)
-    sha256 = Column(String(64), unique=True, nullable=False, index=True)
-    sha512 = Column(String(128), unique=True, nullable=False)
+    md5 = Column(String(32), nullable=False, index=True)
+    crc32 = Column(String(8), nullable=False)
+    sha1 = Column(String(40), nullable=False)
+    sha256 = Column(String(64), nullable=False, index=True)
+    sha512 = Column(String(128), nullable=False)
     ssdeep = Column(String(255), nullable=True)
     tag = relationship("Tag",
                        secondary=association_table,
                        backref="malware")
+    __table_args__ = (Index("hash_index",
+                            "md5",
+                            "crc32",
+                            "sha1",
+                            "sha256",
+                            "sha512",
+                            unique=True), )
 
     def to_dict(self):
         d = {}
@@ -107,12 +114,15 @@ class Tag(Base):
 
 class Database:
     def __init__(self):
-        engine = create_engine(Config().api.database)
-        engine.echo = False
-        engine.pool_timeout = 60
+        self.engine = create_engine(Config().api.database, poolclass=NullPool)
+        self.engine.echo = False
+        self.engine.pool_timeout = 60
 
-        Base.metadata.create_all(engine)
-        self.Session = sessionmaker(bind=engine)
+        Base.metadata.create_all(self.engine)
+        self.Session = sessionmaker(bind=self.engine)
+
+    def __del__(self):
+        self.engine.dispose()
 
     def add(self, obj, file_name, tags=None):
         session = self.Session()
