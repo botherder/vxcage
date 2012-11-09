@@ -102,7 +102,7 @@ Submit a sample:
 
 Retrieve a sample:
 
-    $ curl http://yourdomain.tld/malware/get/<md5> > sample.exe
+    $ curl http://yourdomain.tld/malware/get/<sha256> > sample.exe
 
 Find a sample by MD5:
 
