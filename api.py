@@ -68,6 +68,7 @@ def find_malware():
                  "sha512" : row.sha512,
                  "crc32" : row.crc32,
                  "ssdeep": row.ssdeep,
+                 "created_at": row.created_at.__str__(),
                  "tags" : tags}
 
         return entry
