@@ -25,22 +25,20 @@
 
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import getpass
 import argparse
-import requests
+
+try:
+    import requests
+    from progressbar import *
+    from prettytable import PrettyTable
+except ImportError as e:
+    sys.exit("ERROR: Missing dependency: %s" % e)
 
 def color(text, color_code):
     return '\x1b[%dm%s\x1b[0m' % (color_code, text)
-
-def red(text):
-    return color(text, 31)
-
-def green(text):
-    return color(text, 32)
-
-def yellow(text):
-    return color(text, 33)
 
 def cyan(text):
     return color(text, 36)
@@ -72,7 +70,7 @@ class VxCage(object):
             self.username = raw_input("Username: ")
             self.password = getpass.getpass("Password: ")
 
-    def make_url(self, route):
+    def build_url(self, route):
         if self.ssl:
             url = "https://"
             self.port = 443
@@ -83,39 +81,125 @@ class VxCage(object):
 
         return url
 
-    def initialize(self):
-        try:
-            req = requests.get(self.make_url("/test"),
-                               auth=(self.username, self.password),
-                               verify=False)
-        except Exception as e:
-            print("ERROR: %s" % e)
-            return False
-
-        return True
-
     def tags_list(self):
-        req = requests.get(self.make_url("/tags/list"),
+        req = requests.get(self.build_url("/tags/list"),
                            auth=(self.username, self.password),
                            verify=False)
         res = req.json
 
-        print("Tags list:")
+        table = PrettyTable(["tag"])
+        table.align = "l"
+        table.padding_width = 1
+
         for tag in res:
-            print("  * " + tag)
+            table.add_row([tag])
+
+        print(table)
+        print("Total: %s" % len(res))
+
+    def find_malware(self, term, value):
+        term = term.lower()
+
+        if not term in ("md5", "sha256", "ssdeep", "tag"):
+            print("ERROR: Invalid search term [md5, sha256, ssdeep, tag]")
+            return
+
+        payload = {term : value}
+        req = requests.post(self.build_url("/malware/find"),
+                            data=payload,
+                            auth=(self.username, self.password),
+                            verify=False)
+        res = req.json
+
+        if isinstance(res, dict):
+            for key, value in res.items():
+                if key == "tags":
+                    print("%s: %s" % (bold(key), ",".join(value)))
+                else:
+                    print("%s: %s" % (bold(key), value))
+        else:
+            table = PrettyTable(["md5",
+                                 "sha256",
+                                 "file_name",
+                                 "file_type",
+                                 "file_size"])
+            table.align = "l"
+            table.padding_width = 1
+
+            for entry in res:
+                table.add_row([entry["md5"],
+                               entry["sha256"],
+                               entry["file_name"],
+                               entry["file_type"],
+                               entry["file_size"]])
+
+            print(table)
+            print("Total: %d" % len(res))
+
+    def get_malware(self, sha256, path):
+        if not os.path.exists(path):
+            print("ERROR: Folder does not exist at path %s" % path)
+            return
+
+        req = requests.get(self.build_url("/malware/get/%s" % sha256),
+                           auth=(self.username, self.password),
+                           verify=False)
+
+        size = int(req.headers["Content-Length"].strip())
+        bytes = 0
+
+        widgets = [
+            "Download: ",
+            Percentage(),
+            " ",
+            Bar(marker=":"),
+            " ",
+            ETA(),
+            " ",
+            FileTransferSpeed()
+        ]
+        progress = ProgressBar(widgets=widgets, maxval=size).start()
+
+        destination = os.path.join(path, sha256)
+        binary = open(destination, "wb")
+
+        for buf in req.iter_content(1024):
+            if buf:
+                binary.write(buf)
+                bytes += len(buf)
+                progress.update(bytes)
+
+        progress.finish()
+        binary.close()
+
+        print("File downloaded at path: %s" % destination)
 
     def run(self):
         self.authenticate()
-        if not self.initialize():
-            return
 
         while True:
-            command = raw_input(cyan("vxcage> "))
+            try:
+                raw = raw_input(cyan("vxcage> "))
+            except KeyboardInterrupt:
+                print("")
+                continue
 
-            if command == "tags":
+            command = raw.strip().split(" ")
+
+            if command[0] == "tags":
                 self.tags_list()
-            elif command == "quit":
-                return
+            elif command[0] == "find":
+                if len(command) == 3:
+                    self.find_malware(command[1], command[2])
+                else:
+                    print("ERROR: Missing arguments (e.g. \"find key value\")")
+            elif command[0] == "get":
+                if len(command) == 3:
+                    self.get_malware(command[1], command[2])
+                else:
+                    print("ERROR: Missing arguments (e.g. \"get sha256 /path/\")")
+            elif command[0] == "quit" or command[0] == "exit":
+                break
 
 if __name__ == "__main__":
     logo()
@@ -127,8 +211,5 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--auth", help="Enable if the server is prompting an HTTP authentication", default=False, action="store_true", required=False)
     args = parser.parse_args()
 
-    try:
-        vx = VxCage(host=args.host, port=args.port, ssl=args.ssl, auth=args.auth)
-        vx.run()
-    except KeyboardInterrupt:
-        sys.exit(1)
+    vx = VxCage(host=args.host, port=args.port, ssl=args.ssl, auth=args.auth)
+    vx.run()

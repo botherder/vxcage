@@ -25,6 +25,7 @@
 
 # -*- coding: utf-8 -*-
 
+import os
 import argparse
 
 from bottle import route, request, response, run
@@ -55,6 +56,7 @@ def get_malware(sha256):
     if not path:
         raise HTTPError(404, "File not found")
 
+    response.content_length = os.getsize(path)
     response.content_type = "application/octet-stream; charset=UTF-8"
     data = open(path, "rb").read()
 
