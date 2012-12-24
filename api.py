@@ -34,6 +34,10 @@ from objects import File
 from database import Database
 from utils import jsonize, store_sample, get_sample_path
 
+@route("/test", method="GET")
+def test():
+    return jsonize({"message" : "test"})
+
 @route("/malware/add", method="POST")
 def add_malware():
     tags = request.forms.get("tags")
