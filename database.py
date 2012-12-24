@@ -44,7 +44,7 @@ class Malware(Base):
     id = Column(Integer(), primary_key=True)
     file_name = Column(String(255), nullable=True)
     file_size = Column(Integer(), nullable=False)
-    file_type = Column(String(255), nullable=False)
+    file_type = Column(String(255), nullable=True)
     md5 = Column(String(32), nullable=False, index=True)
     crc32 = Column(String(8), nullable=False)
     sha1 = Column(String(40), nullable=False)
@@ -64,11 +64,12 @@ class Malware(Base):
                             unique=True), )
 
     def to_dict(self):
-        d = {}
+        row_dict = {}
         for column in self.__table__.columns:
             value = getattr(self, column.name)
-            d[column.name] = value
-        return d
+            row_dict[column.name] = value
+
+        return row_dict
 
     def __repr__(self):
         return "<Malware('%s','%s')>" % (self.id, self.md5)
@@ -89,12 +90,9 @@ class Malware(Base):
         self.sha256 = sha256
         self.sha512 = sha512
         self.file_size = file_size
-        if file_type:
-            self.file_type = file_type
-        if ssdeep:
-            self.ssdeep = ssdeep
-        if file_name:
-            self.file_name = file_name
+        self.file_type = file_type
+        self.ssdeep = ssdeep
+        self.file_name = file_name
 
 class Tag(Base):
     __tablename__ = "tag"
@@ -103,11 +101,12 @@ class Tag(Base):
     tag = Column(String(255), nullable=False, unique=True, index=True)
 
     def to_dict(self):
-        d = {}
+        row_dict = {}
         for column in self.__table__.columns:
             value = getattr(self, column.name)
-            d[column.name] = value
-        return d
+            row_dict[column.name] = value
+
+        return row_dict
 
     def __repr__(self):
         return "<Tag ('%s','%s'>" % (self.id, self.tag)
