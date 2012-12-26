@@ -216,7 +216,7 @@ class VxCage(object):
             print("ERROR: File does not exist at path %s" % path)
             return
 
-        files = {"file": open(path, "rb")}
+        files = {"file": (os.path.basename(path), open(path, "rb"))}
         payload = {"tags" : tags}
 
         req = requests.post(self.build_url("/malware/add"),
