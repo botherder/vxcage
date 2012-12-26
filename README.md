@@ -194,7 +194,7 @@ You can retrieve the list of available tags:
     | citadel                |
     | zeus                   |
     +------------------------+
-    Total: 41
+    Total: 5
 
 You can search for all samples matching a specific tag:
 
