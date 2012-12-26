@@ -35,6 +35,8 @@ from objects import File
 from database import Database
 from utils import jsonize, store_sample, get_sample_path
 
+db = Database()
+
 @route("/test", method="GET")
 def test():
     return jsonize({"message" : "test"})
@@ -45,7 +47,6 @@ def add_malware():
     data = request.files.file
     info = File(file_path=store_sample(data.file.read()))
 
-    db = Database()
     db.add(obj=info, file_name=data.filename, tags=tags)
 
     return jsonize({"message" : "added"})
@@ -91,8 +92,6 @@ def find_malware():
     ssdeep = request.forms.get("ssdeep")
     tag = request.forms.get("tag")
 
-    db = Database()
-
     if md5:
         row = db.find_md5(md5)
         if row:
@@ -125,7 +124,6 @@ def find_malware():
 
 @route("/tags/list", method="GET")
 def list_tags():
-    db = Database()
     rows = db.list_tags()
 
     results = []

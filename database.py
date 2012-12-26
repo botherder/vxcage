@@ -147,7 +147,11 @@ class Database:
                 malware_entry = session.query(Malware).filter(Malware.md5 == obj.get_md5()).first()
 
         if tags:
-            tags = tags.split(" ")
+            tags = tags.strip()
+            if "," in tags:
+                tags = tags.split(",")
+            else:
+                tags = tags.split(" ")
 
             for tag in tags:
                 tag = tag.strip().lower()

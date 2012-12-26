@@ -56,6 +56,14 @@ def logo():
     print(cyan("                             OoO' ") + " by nex")
     print("")
 
+def help():
+    print("Available commands:")
+    print("  " + bold("help") + "        Show this help")
+    print("  " + bold("tags") + "        Retrieve list of tags")
+    print("  " + bold("find") + "        Find a file by md5, sha256, ssdeep or tag")
+    print("  " + bold("get") + "         Retrieve a file by sha256")
+    print("  " + bold("add") + "         Upload a file to the server")
+
 class VxCage(object):
     def __init__(self, host, port, ssl=False, auth=False):
         self.host = host
@@ -81,11 +89,24 @@ class VxCage(object):
 
         return url
 
+    def check_errors(self, code):
+        if code == 400:
+            print("ERROR: Invalid request format")
+            return True
+        elif code == 500:
+            print("ERROR: Unexpected error, check your server logs")
+            return True
+        else:
+            return False
+
     def tags_list(self):
         req = requests.get(self.build_url("/tags/list"),
                            auth=(self.username, self.password),
                            verify=False)
         res = req.json
+
+        if self.check_errors(req.status_code):
+            return
 
         table = PrettyTable(["tag"])
         table.align = "l"
@@ -110,6 +131,12 @@ class VxCage(object):
                             auth=(self.username, self.password),
                             verify=False)
         res = req.json
+
+        if req.status_code == 404:
+            print("No file found matching your search")
+            return
+        if self.check_errors(req.status_code):
+            return
 
         if isinstance(res, dict):
             for key, value in res.items():
@@ -141,9 +168,19 @@ class VxCage(object):
             print("ERROR: Folder does not exist at path %s" % path)
             return
 
+        if not os.path.isdir(path):
+            print("ERROR: The path specified is not a directory.")
+            return
+
         req = requests.get(self.build_url("/malware/get/%s" % sha256),
                            auth=(self.username, self.password),
                            verify=False)
+
+        if req.status_code == 404:
+            print("File not found")
+            return
+        if self.check_errors(req.status_code):
+            return
 
         size = int(req.headers["Content-Length"].strip())
         bytes = 0
@@ -174,6 +211,23 @@ class VxCage(object):
 
         print("File downloaded at path: %s" % destination)
 
+    def add_malware(self, path, tags=None):
+        if not os.path.exists(path):
+            print("ERROR: File does not exist at path %s" % path)
+            return
+
+        files = {"file": open(path, "rb")}
+        payload = {"tags" : tags}
+
+        req = requests.post(self.build_url("/malware/add"),
+                            auth=(self.username, self.password),
+                            verify=False,
+                            files=files,
+                            data=payload)
+
+        if not self.check_errors(req.status_code):
+            print("File uploaded successfully")
+
     def run(self):
         self.authenticate()
 
@@ -186,18 +240,27 @@ class VxCage(object):
 
             command = raw.strip().split(" ")
 
-            if command[0] == "tags":
+            if command[0] == "help":
+                help()
+            elif command[0] == "tags":
                 self.tags_list()
             elif command[0] == "find":
                 if len(command) == 3:
                     self.find_malware(command[1], command[2])
                 else:
-                    print("ERROR: Missing arguments (e.g. \"find key value\")")
+                    print("ERROR: Missing arguments (e.g. \"find <key> <value>\")")
             elif command[0] == "get":
                 if len(command) == 3:
                     self.get_malware(command[1], command[2])
                 else:
-                    print("ERROR: Missing arguments (e.g. \"get sha256 /path/\")")
+                    print("ERROR: Missing arguments (e.g. \"get <sha256> <path>\")")
+            elif command[0] == "add":
+                if len(command) == 2:
+                    self.add_malware(command[1])
+                elif len(command) == 3:
+                    self.add_malware(command[1], command[2])
+                else:
+                    print("ERROR: Missing arguments (e.g. \"add <path> <comma separated tags>\")")
             elif command[0] == "quit" or command[0] == "exit":
                 break
 
