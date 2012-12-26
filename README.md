@@ -135,7 +135,12 @@ In case you added a basic authentication, you will need to add `--basic -u "user
 Console
 -------
 
-In order to simplify the interaction with your VxCage server, you can also use the console interface.
+You can also easily interact with your VxCage server using the provided console interface.
+In order to run it, you'll need the following dependencies:
+
+* [requests](http://www.python-requests.org) -- `pip install requests`
+* [prettytable](http://code.google.com/p/prettytable/) -- `pip install prettytable`
+* [progressbar](http://code.google.com/p/python-progressbar/) -- `pip install progressbar`
 
 This is the help message:
 
