@@ -178,7 +178,7 @@ Now you can start typing commands, you can start with:
     Available commands:
       help        Show this help
       tags        Retrieve list of tags
-      find        Find a file by md5, sha256, ssdeep or tag
+      find        Find a file by md5, sha256, ssdeep, tag or date
       get         Retrieve a file by sha256
       add         Upload a file to the server
 

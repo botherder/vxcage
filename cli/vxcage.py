@@ -60,7 +60,7 @@ def help():
     print("Available commands:")
     print("  " + bold("help") + "        Show this help")
     print("  " + bold("tags") + "        Retrieve list of tags")
-    print("  " + bold("find") + "        Find a file by md5, sha256, ssdeep or tag")
+    print("  " + bold("find") + "        Find a file by md5, sha256, ssdeep, tag or date")
     print("  " + bold("get") + "         Retrieve a file by sha256")
     print("  " + bold("add") + "         Upload a file to the server")
 
@@ -122,7 +122,7 @@ class VxCage(object):
         term = term.lower()
 
         if not term in ("md5", "sha256", "ssdeep", "tag", "date"):
-            print("ERROR: Invalid search term [md5, sha256, ssdeep, tag]")
+            print("ERROR: Invalid search term [md5, sha256, ssdeep, tag, date]")
             return
 
         payload = {term : value}
