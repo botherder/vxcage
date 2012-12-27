@@ -186,34 +186,22 @@ class Database:
 
     def find_md5(self, md5):
         session = self.Session()
-        try:
-            row = session.query(Malware).filter(Malware.md5 == md5).first()
-        except SQLAlchemyError:
-            return None
+        row = session.query(Malware).filter(Malware.md5 == md5).first()
         return row
 
     def find_sha256(self, sha256):
         session = self.Session()
-        try:
-            row = session.query(Malware).filter(Malware.sha256 == sha256).first()
-        except SQLAlchemyError:
-            return None
+        row = session.query(Malware).filter(Malware.sha256 == sha256).first()
         return row
 
     def find_tag(self, tag):
         session = self.Session()
-        try:
-            rows =  session.query(Malware).filter(Malware.tag.any(Tag.tag == tag.lower())).all()
-        except SQLAlchemyError:
-            return None
+        rows =  session.query(Malware).filter(Malware.tag.any(Tag.tag == tag.lower())).all()
         return rows
 
     def find_ssdeep(self, ssdeep):
         session = self.Session()
-        try:
-            rows = session.query(Malware).filter(Malware.ssdeep.like("%" + str(ssdeep) + "%")).all()
-        except SQLAlchemyError:
-            return None
+        rows = session.query(Malware).filter(Malware.ssdeep.like("%" + str(ssdeep) + "%")).all()
         return rows
 
     def find_date(self, date):
@@ -222,16 +210,10 @@ class Database:
         date_min = datetime.strptime(date, "%Y-%m-%d")
         date_max = date_min.replace(hour=23, minute=59, second=59)
 
-        try:
-            rows = session.query(Malware).filter(and_(Malware.created_at >= date_min, Malware.created_at <= date_max)).all()
-        except SQLAlchemyError:
-            return None
+        rows = session.query(Malware).filter(and_(Malware.created_at >= date_min, Malware.created_at <= date_max)).all()
         return rows
 
     def list_tags(self):
         session = self.Session()
-        try:
-            rows = session.query(Tag).all()
-        except SQLAlchemyError:
-            return None
+        rows = session.query(Tag).all()
         return rows
