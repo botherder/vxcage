@@ -91,6 +91,7 @@ def find_malware():
     sha256 = request.forms.get("sha256")
     ssdeep = request.forms.get("ssdeep")
     tag = request.forms.get("tag")
+    date = request.forms.get("date")
 
     if md5:
         row = db.find_md5(md5)
@@ -109,6 +110,8 @@ def find_malware():
             rows = db.find_ssdeep(ssdeep)
         elif tag:
             rows = db.find_tag(tag)
+        elif date:
+            rows = db.find_date(date)
         else:
             return HTTPError(400, "Invalid search term")
 

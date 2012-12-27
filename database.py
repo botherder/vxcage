@@ -22,7 +22,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, ForeignKey, Table, Index
+from sqlalchemy import create_engine, Column, Integer, String, Boolean, DateTime, Enum, ForeignKey, Table, Index, and_
 from sqlalchemy.orm import relationship, backref, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
@@ -212,6 +212,18 @@ class Database:
         session = self.Session()
         try:
             rows = session.query(Malware).filter(Malware.ssdeep.like("%" + str(ssdeep) + "%")).all()
+        except SQLAlchemyError:
+            return None
+        return rows
+
+    def find_date(self, date):
+        session = self.Session()
+
+        date_min = datetime.strptime(date, "%Y-%m-%d")
+        date_max = date_min.replace(hour=23, minute=59, second=59)
+
+        try:
+            rows = session.query(Malware).filter(and_(Malware.created_at >= date_min, Malware.created_at <= date_max)).all()
         except SQLAlchemyError:
             return None
         return rows
