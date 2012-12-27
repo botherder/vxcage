@@ -120,9 +120,10 @@ class VxCage(object):
 
     def find_malware(self, term, value):
         term = term.lower()
+        terms = ["md5", "sha256", "ssdeep", "tag", "date"]
 
-        if not term in ("md5", "sha256", "ssdeep", "tag", "date"):
-            print("ERROR: Invalid search term [md5, sha256, ssdeep, tag, date]")
+        if not term in terms:
+            print("ERROR: Invalid search term [%s]" % (", ".join(terms)))
             return
 
         payload = {term : value}
