@@ -44,7 +44,7 @@ class Malware(Base):
     id = Column(Integer(), primary_key=True)
     file_name = Column(String(255), nullable=True)
     file_size = Column(Integer(), nullable=False)
-    file_type = Column(String(255), nullable=True)
+    file_type = Column(Text(), nullable=True)
     md5 = Column(String(32), nullable=False, index=True)
     crc32 = Column(String(8), nullable=False)
     sha1 = Column(String(40), nullable=False)
@@ -114,7 +114,17 @@ class Tag(Base):
     def __init__(self, tag):
         self.tag = tag
 
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
 class Database:
+
+    __metaclass__ = Singleton
+
     def __init__(self):
         self.engine = create_engine(Config().api.database, poolclass=NullPool)
         self.engine.echo = False
@@ -145,6 +155,9 @@ class Database:
             except IntegrityError:
                 session.rollback()
                 malware_entry = session.query(Malware).filter(Malware.md5 == obj.get_md5()).first()
+            except SQLAlchemyError:
+                session.rollback()
+                return False
 
         if tags:
             tags = tags.strip()
@@ -166,33 +179,47 @@ class Database:
                     try:
                         malware_entry.tag.append(session.query(Tag).filter(Tag.tag==tag).first())
                         session.commit()
-                    except:
+                    except SQLAlchemyError:
                         session.rollback()
-                        # TODO: OMG cannot tag!
 
         return True
 
     def find_md5(self, md5):
         session = self.Session()
-        row = session.query(Malware).filter(Malware.md5 == md5).first()
+        try:
+            row = session.query(Malware).filter(Malware.md5 == md5).first()
+        except SQLAlchemyError:
+            return None
         return row
 
     def find_sha256(self, sha256):
         session = self.Session()
-        row = session.query(Malware).filter(Malware.sha256 == sha256).first()
+        try:
+            row = session.query(Malware).filter(Malware.sha256 == sha256).first()
+        except SQLAlchemyError:
+            return None
         return row
 
     def find_tag(self, tag):
         session = self.Session()
-        rows =  session.query(Malware).filter(Malware.tag.any(Tag.tag == tag.lower())).all()
+        try:
+            rows =  session.query(Malware).filter(Malware.tag.any(Tag.tag == tag.lower())).all()
+        except SQLAlchemyError:
+            return None
         return rows
 
     def find_ssdeep(self, ssdeep):
         session = self.Session()
-        rows = session.query(Malware).filter(Malware.ssdeep.like("%" + str(ssdeep) + "%")).all()
+        try:
+            rows = session.query(Malware).filter(Malware.ssdeep.like("%" + str(ssdeep) + "%")).all()
+        except SQLAlchemyError:
+            return None
         return rows
 
     def list_tags(self):
         session = self.Session()
-        rows = session.query(Tag).all()
+        try:
+            rows = session.query(Tag).all()
+        except SQLAlchemyError:
+            return None
         return rows
