@@ -103,7 +103,7 @@ class VxCage(object):
         req = requests.get(self.build_url("/tags/list"),
                            auth=(self.username, self.password),
                            verify=False)
-        res = req.json
+        res = req.json()
 
         if self.check_errors(req.status_code):
             return
@@ -131,7 +131,7 @@ class VxCage(object):
                             data=payload,
                             auth=(self.username, self.password),
                             verify=False)
-        res = req.json
+        res = req.json()
 
         if req.status_code == 404:
             print("No file found matching your search")
