@@ -150,7 +150,8 @@ class VxCage(object):
                                  "sha256",
                                  "file_name",
                                  "file_type",
-                                 "file_size"])
+                                 "file_size",
+                                 "tags"])
             table.align = "l"
             table.padding_width = 1
 
@@ -159,7 +160,8 @@ class VxCage(object):
                                entry["sha256"],
                                entry["file_name"],
                                entry["file_type"],
-                               entry["file_size"]])
+                               entry["file_size"],
+                               ", ".join(entry["tags"])])
 
             print(table)
             print("Total: %d" % len(res))
@@ -238,6 +240,9 @@ class VxCage(object):
             except KeyboardInterrupt:
                 print("")
                 continue
+            except EOFError:
+                print("")
+                break
 
             command = raw.strip().split(" ")
 
