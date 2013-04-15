@@ -103,7 +103,14 @@ class VxCage(object):
         req = requests.get(self.build_url("/tags/list"),
                            auth=(self.username, self.password),
                            verify=False)
-        res = req.json()
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
 
         if self.check_errors(req.status_code):
             return
@@ -131,7 +138,14 @@ class VxCage(object):
                             data=payload,
                             auth=(self.username, self.password),
                             verify=False)
-        res = req.json()
+        try:
+            res = req.json()
+        except:
+            try:
+                res = req.json
+            except Exception as e:
+                print("ERROR: Unable to parse results: {0}".format(e))
+                return
 
         if req.status_code == 404:
             print("No file found matching your search")
