@@ -3,6 +3,9 @@ VxCage
 
 VxCage is a WSGI Python application for managing a malware samples repository with a REST API interface.
 
+The successor of VxCage is [Viper](http://viper.li/) and is also available on [github](https://github.com/botherder/viper) 
+
+
 Requirements
 ------------
 
